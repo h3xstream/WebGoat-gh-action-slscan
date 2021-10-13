@@ -1,0 +1,31 @@
+name: "Branch build"
+
+on: [push]
+
+jobs:
+  slscan-to-github:
+    runs-on: ubuntu-latest
+    name: "Slscan"
+    steps:
+      - uses: actions/checkout@v2
+      - name: set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 15
+          architecture: x64
+      - name: Cache Maven packages
+        uses: actions/cache@v2.1.5
+        with:
+          path: ~/.m2
+          key: ubuntu-latest-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ubuntu-latest-m2
+      
+      #Compiling
+      - name: Running 
+        run: mvn clean install -DskipTests
+      
+      #Slscan
+      - uses: ShiftLeftSecurity/scan-action@master
+        with:
+          type: "credscan,java,depscan"
